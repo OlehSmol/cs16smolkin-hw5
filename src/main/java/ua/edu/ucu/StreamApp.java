@@ -19,7 +19,7 @@ public class StreamApp {
         return intArr;
     }
 
-    public static String streamForEach(IntStream intStream) {        
+    public static String streamForEach(IntStream intStream) {
         StringBuilder str = new StringBuilder();
         intStream.forEach(x -> str.append(x));
         return str.toString();
