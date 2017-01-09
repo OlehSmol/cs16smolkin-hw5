@@ -6,8 +6,8 @@ import java.util.LinkedList;
 import java.util.ListIterator;
 
 public class AsIntStream implements IntStream {
-    LinkedList<Integer> container;
-    LinkedList<Object> pipeline;
+    private LinkedList<Integer> container;
+    private LinkedList<Object> pipeline;
 
     private AsIntStream() {
         this.container = new LinkedList<>();
@@ -19,7 +19,7 @@ public class AsIntStream implements IntStream {
         this.pipeline = pipeline;
     }
 
-    private AsIntStream IntermediateOperation(Object operation) {
+    private AsIntStream intermediateOperation(Object operation) {
         LinkedList<Integer> newContainer = new LinkedList<>();
         ListIterator<Integer> containerIterator = this.container.listIterator();
         while (containerIterator.hasNext()) {
@@ -36,15 +36,15 @@ public class AsIntStream implements IntStream {
         return new AsIntStream(newContainer, newPipeline);
     }
 
-    private void PipelineExecution() {
+    private void pipelineExecution() {
         ListIterator<Object> pipelineIterator = this.pipeline.listIterator();
         while (pipelineIterator.hasNext()) {
             Object op = pipelineIterator.next();
-            if(op instanceof IntPredicate) {
+            if(op instanceof IntPredicate){
                 filterExecution((IntPredicate) op);
-            } else if(op instanceof IntUnaryOperator) {
+            } else if(op instanceof IntUnaryOperator){
                 mapExecution((IntUnaryOperator) op);
-            } else if(op instanceof IntToIntStreamFunction) {
+            } else if(op instanceof IntToIntStreamFunction){
                 flatMapExecution((IntToIntStreamFunction) op);
             }
         }
@@ -56,7 +56,7 @@ public class AsIntStream implements IntStream {
 
     public static IntStream of(int... values) {
         AsIntStream asIntStream = new AsIntStream();
-        for(Integer val: values){
+        for(Integer val: values) {
             asIntStream.add(val);
         }
         return asIntStream;
@@ -64,23 +64,21 @@ public class AsIntStream implements IntStream {
 
     @Override
     public Double average() {
-        PipelineExecution();
-
-        if(this.container.isEmpty()) {
+        if(this.container.isEmpty()){
             throw new IllegalStateException("Stream is empty");
         }
 
+        pipelineExecution();
         return this.sum().doubleValue()/this.container.size();
     }
 
     @Override
     public Integer max() {
-        PipelineExecution();
-
-        if(this.container.isEmpty()) {
+        if(this.container.isEmpty()){
             throw new IllegalStateException("Stream is empty");
         }
 
+        pipelineExecution();
         Integer max = container.get(0);
         ListIterator<Integer> containerIterator = this.container.listIterator();
         while (containerIterator.hasNext()) {
@@ -95,17 +93,16 @@ public class AsIntStream implements IntStream {
 
     @Override
     public Integer min() {
-        PipelineExecution();
-
-        if(this.container.isEmpty()) {
+        if(this.container.isEmpty()){
             throw new IllegalStateException("Stream is empty");
         }
 
+        pipelineExecution();
         Integer min = container.get(0);
         ListIterator<Integer> containerIterator = this.container.listIterator();
         while (containerIterator.hasNext()) {
             Integer val = containerIterator.next();
-            if(val.compareTo(min) < 0) {
+            if(val.compareTo(min) < 0){
                 min = val;
             }
         }
@@ -115,18 +112,16 @@ public class AsIntStream implements IntStream {
 
     @Override
     public long count() {
-        PipelineExecution();
-
+        pipelineExecution();
         return this.container.size();
     }
 
     @Override
     public Integer sum() {
-        PipelineExecution();
-
+        pipelineExecution();
         Integer sum = 0;
         ListIterator<Integer> containerIterator = this.container.listIterator();
-        while (containerIterator.hasNext()){
+        while (containerIterator.hasNext()) {
             sum += containerIterator.next();
         }
 
@@ -135,13 +130,13 @@ public class AsIntStream implements IntStream {
 
     @Override
     public IntStream filter(IntPredicate predicate) {
-        return IntermediateOperation(predicate);
+        return intermediateOperation(predicate);
     }
 
     private void filterExecution(IntPredicate predicate) {
         ListIterator<Integer> containerIterator = this.container.listIterator();
         while (containerIterator.hasNext()){
-            if(!predicate.test(containerIterator.next())) {
+            if(!predicate.test(containerIterator.next())){
                 containerIterator.remove();
             }
         }
@@ -149,8 +144,7 @@ public class AsIntStream implements IntStream {
 
     @Override
     public void forEach(IntConsumer action) {
-        PipelineExecution();
-
+        pipelineExecution();
         for(Integer val : this.container) {
             action.accept(val);
         }
@@ -158,7 +152,7 @@ public class AsIntStream implements IntStream {
 
     @Override
     public IntStream map(IntUnaryOperator mapper) {
-        return IntermediateOperation(mapper);
+        return intermediateOperation(mapper);
     }
 
     private void mapExecution(IntUnaryOperator mapper) {
@@ -171,7 +165,7 @@ public class AsIntStream implements IntStream {
 
     @Override
     public IntStream flatMap(IntToIntStreamFunction func) {
-        return IntermediateOperation(func);
+        return intermediateOperation(func);
     }
 
     private void flatMapExecution(IntToIntStreamFunction func) {
@@ -179,7 +173,7 @@ public class AsIntStream implements IntStream {
         ListIterator<Integer> containerIterator = this.container.listIterator();
         while (containerIterator.hasNext()) {
             IntStream temp = func.applyAsIntStream(containerIterator.next());
-            for (int el : temp.toArray()){
+            for (int el : temp.toArray()) {
                 newContainer.add(el);
             }
         }
@@ -188,7 +182,7 @@ public class AsIntStream implements IntStream {
 
     @Override
     public int reduce(int identity, IntBinaryOperator op) {
-        PipelineExecution();
+        pipelineExecution();
         ListIterator<Integer> containerIterator = this.container.listIterator();
         while (containerIterator.hasNext()) {
             identity = op.apply(identity, containerIterator.next());
@@ -198,7 +192,7 @@ public class AsIntStream implements IntStream {
 
     @Override
     public int[] toArray() {
-        PipelineExecution();
+        pipelineExecution();
         int[] array = new int[this.container.size()];
         for(int i=0; i<container.size(); i++) {
             array[i] = this.container.get(i);
